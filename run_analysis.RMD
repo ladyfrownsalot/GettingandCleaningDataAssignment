@@ -134,3 +134,8 @@ Write data table to a CSV
 ```{r}
 write.csv(data4, "Week4_run_analysis_assignment_FINAL.csv")
 ```
+
+Extra bit of code to read in my original table
+```{r}
+read.csv(data4, "Week4_run_analysis_assignment_FINAL.csv")
+```

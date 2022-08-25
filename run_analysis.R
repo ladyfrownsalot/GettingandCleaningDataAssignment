@@ -1,19 +1,26 @@
 # Thu Aug 25 14:50:14 2022 ------------------------------
 
 
+#oad libraries
+
 library(dplyr)
 library(data.table)
 
+
+#Bring in label tables for activity and feature. These are used to join with the data tables to create column names 
 #bring in activity labels. These will be used to join names with the type of activity
 act_labs<-read.table("UCI HAR Dataset/activity_labels.txt")
-#bring in the feature lables. These will used to join names with the data types
+#bring in the feature labels. These will used to join names with the data types
 feature<-read.table("UCI HAR Dataset/features.txt")
-#bring in the test labels. These will be used to join activity type to the results in the test table
-test_labs<-read.table("UCI HAR Dataset/test/Y_test.txt")
-#bring in the test data
+
+#Bring in the test data. This is the data, subject, and labels for the subjects that were under the "test" category.
 test=read.table("UCI HAR Dataset/test/X_test.txt")
 #bring in subject test table
 test_sub<-read.table("UCI HAR Dataset/test/subject_test.txt")
+#bring in the test labels. These will be used to join activity type to the results in the test table
+test_labs<-read.table("UCI HAR Dataset/test/Y_test.txt")
+
+#Bring in the train data. This is the data, subject, and labels for the subjects that were under the "train" category.
 #bring in the train labels. These will be used to join activity type to the results in the train table
 train_labs=read.table("UCI HAR Dataset/train/Y_train.txt")
 #bring in the train data
@@ -21,56 +28,74 @@ train=read.table("UCI HAR Dataset/train/X_train.txt")
 #bring in subject traintable
 train_sub<-read.table("UCI HAR Dataset/train/subject_train.txt")
 
-# 1. Merges the training and the test sets to create one data set.
-
-#test data
-#merge test data with label tables
+#Merge all of the test tables together
+#merge test data with activity label table & rename column to explicit name (activity = V2)
 test_labs2<-merge(test_labs, act_labs) %>% select(activity = V2)
 #ensure the tables we want to merge next have the same number of rows
-nrow(test) == nrow(test_labs2)
-#they do!
+nrow(test) == nrow(test_labs2) #they do!
+#bind with test label table
 test2<-cbind(test_labs2, test)
-#bind with subject data
+#bind with test subject data
 test3<-cbind(test2, test_sub)
 #create list of features to add as column names in test dataframe
 feature_list<-c("activity", feature$V2, "subject")
+#rename the columns
 colnames(test3)<-feature_list
 #create new column that says this is test data
 test3$datatype<-"test"
 
-#train data
-#merge train data with label tables
+#Merge all of the train tables together
+#merge train data with activity label table & rename column to explicit name (activity = V2)
 train_labs2<-merge(train_labs, act_labs) %>% select(activity = V2)
 #ensure the tables we want to merge next have the same number of rows
-nrow(train) == nrow(train_labs2)
-#they do!
+nrow(train) == nrow(train_labs2) #they do!
+#bind with train label table
 train2<-cbind(train_labs2, train)
 #bind with subject data
 train3<-cbind(train2, train_sub)
 #create list of features to add as column names in train dataframe
 feature_list<-c("activity", feature$V2,"subject")
+#rename the columns
 colnames(train3)<-feature_list
+#create new column that says this is train data
 train3$datatype<-"train"
 
+#Bind the training and test sets to create one data set.
+#ensure the tables we want to merge next have the same number of columns
+ncol(test3) == ncol(train3) #they do!
 #bind train and test data together
 data_all<-rbind(test3, train3)
 
-# 2. Extracts only the measurements on the mean and standard deviation for each measurement. 
+#Extracts only the measurements on the mean and standard deviation for each measurement.
+#use regex to extract the columns that have mean in the variable name and create new dataframe
 mean<-data_all[grep("[Mm]ean|activity|datatype|subject", names(data_all))]
+#use regex to extract the columns that have std in the variable name and create new dataframe
 std<- data_all[grep("[Ss]td|activity|datatype|subject", names(data_all))]
+#bind the two datasets together to create one dataset that only has the means and std
 data2<-cbind(mean, std)
 
-# 3. Uses descriptive activity names to name the activities in the data set
-# 4. Appropriately labels the data set with descriptive variable names. 
-# 3 and 4 were done in the merging steps above
+#Create a second, independent tidy data set with the average of each variable for each activity and each subject from the data set in step 4.
+#create a list of column names from the dataset in step 4
+cols=colnames(data2)
+#filter the ones that are not variables
+cols=cols[-c(1,55:57,91:92)]
+#turn data2 into a data table rather than a data frame
+data2<-data.table(data2)
+#make the data long rather than wide using the cols list we created to name the variable columns
+data3<-melt(data2, id.vars = c("subject", "datatype", "activity"), measure.vars=cols)
+#ensure the subject column is in character form rather than numeric to keep R from treating it as a number
+data3$subject<-as.character(data3$subject)
+#create new data table from the tidy long format above
+data4=data3
+#calculate the mean of each variable by subject and activity using data.table
+data4=data4[ , .(mean(value)),by=.(subject, activity, variable)]
+#rename the average column with a desccriptive name
+data4=rename(data4,average=V1)
 
-# 5. From the data set in step 4, creates a second, independent tidy data set with the average of each variable for each activity and each subject.
-cols=c(feature$V2)
-data_all<-data.table(data_all)
-d1<-melt(data_all, id.vars = c("subject", "datatype", "activity"), measure.vars=cols)
-d1$subject<-as.character(d1$subject)
+#Write data table to a CSV
+write.csv(data4, "Week4_run_analysis_assignment_FINAL.csv")
 
-d2=d1
-d2=d2[ , .(mean(value)),by=.(subject, activity, variable)]
-rename(d2,average=V1)
+#extra bit of code to read in my original table
+read.csv(data4, "Week4_run_analysis_assignment_FINAL.csv")
+
 
