@@ -8,7 +8,7 @@ output: html_notebook
 ### Files
 
 | Filename.ext        | Description                                                                                                   |
-|----------------|--------------------------------------------------------|
+|---------------------|---------------------------------------------------------------------------------------------------------------|
 | features.txt        | List of all features (what I called variables)                                                                |
 | activity_labels.txt | Links the class labels with their activity name                                                               |
 | X_train.txt         | Training data set                                                                                             |
@@ -41,16 +41,25 @@ Final list of deliverables include the following:
 
     -   R script with original script
 
--    run_analysis.RMD
+-   run_analysis.RMD
 
+```{=html}
+<!-- -->
+```
     -    R Markdown that goes through script in chunks
 
     -    Very detailed walk-through notes
 
--    Week4_run_analysis_assignment_FINAL.csv
+-   Week4_run_analysis_assignment_FINAL.csv
 
+```{=html}
+<!-- -->
+```
     -    Final output from original script
 
--    CodeBook.md
+-   CodeBook.md
 
+```{=html}
+<!-- -->
+```
     -    This document

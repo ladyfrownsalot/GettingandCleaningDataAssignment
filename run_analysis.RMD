@@ -132,7 +132,8 @@ data4=rename(data4,average=V1)
 
 Write data table to a CSV
 ```{r}
-write.csv(data4, "Week4_run_analysis_assignment_FINAL.csv")
+write.table(data4, "Week4_run_analysis_assignment_FINAL.csv", row.name=FALSE)
+
 ```
 
 Extra bit of code to read in my original table
